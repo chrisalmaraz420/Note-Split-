@@ -2,23 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
-  <title>NOTE SPLIT</title>
+  <title>Note Split</title>
   <style>
     :root {
       color-scheme: light;
-      --ink: #555;
-      --muted: #858585;
-      --line: #d8d8d8;
-      --soft: #f7f7f7;
       --white: #fff;
+      --paper: #f8f8f8;
+      --ink: #454545;
+      --muted: #858585;
+      --line: #e1e1e1;
+      --line-dark: #c9c9c9;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       min-width: 320px;
@@ -28,746 +27,917 @@
       color: var(--ink);
     }
 
-    button,
-    input {
-      font: inherit;
-    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
 
-    .page-header {
-      padding: 54px 20px 48px;
-      text-align: center;
-    }
-
-    h1 {
-      margin: 0;
-      color: #515151;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(38px, 7vw, 64px);
-      font-weight: 700;
-      letter-spacing: 2px;
-      line-height: 1;
-    }
-
-    main {
-      width: min(100% - 40px, 900px);
-      margin: 0 auto;
-      padding-bottom: 72px;
-    }
-
-    .import-button {
-      width: 100%;
-      min-height: 94px;
+    .topbar {
+      position: relative;
+      z-index: 2;
+      height: 76px;
       display: flex;
       align-items: center;
-      gap: 18px;
-      padding: 20px 26px;
-      border: 1px solid #bdbdbd;
-      border-radius: 4px;
+      justify-content: space-between;
+      padding: 0 max(24px, calc((100vw - 1080px) / 2));
+      border-bottom: 2px solid var(--line-dark);
       background: var(--white);
-      color: #666;
-      text-align: left;
-      cursor: pointer;
-      transition: background-color 150ms ease, border-color 150ms ease;
     }
 
-    .import-button:hover {
-      border-color: #777;
-      background: #fafafa;
-    }
-
-    .import-button:focus-visible,
-    .remove-button:focus-visible {
-      outline: 3px solid #888;
-      outline-offset: 3px;
-    }
-
-    .plus {
-      width: 38px;
-      height: 38px;
-      flex: 0 0 38px;
-      display: grid;
-      place-items: center;
-      border: 1px solid #aaa;
-      border-radius: 50%;
-      color: #666;
-      font-size: 28px;
-      font-weight: 300;
-      line-height: 1;
-    }
-
-    .import-label {
-      font-size: 16px;
-      font-weight: 650;
-    }
-
-    .import-support {
-      display: block;
-      margin-top: 5px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 400;
-    }
-
-    .file-input {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-    }
-
-    .section-heading {
-      margin: 47px 0 22px;
-    }
-
-    .section-heading h2 {
-      margin: 0 0 16px;
-      color: #666;
+    .brand {
+      color: #454545;
       font-family: Georgia, "Times New Roman", serif;
       font-size: 25px;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-decoration: none;
     }
 
-    .divider {
-      height: 1px;
-      border: 0;
-      margin: 0;
-      background: var(--line);
-    }
+    .gear-wrap { position: relative; }
 
-    .empty-state {
-      padding: 40px 18px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-      text-align: center;
-    }
-
-    .song-list {
+    .gear-button, .icon-button {
+      width: 42px;
+      height: 42px;
       display: grid;
-      gap: 16px;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      color: #666;
+      cursor: pointer;
     }
 
-    .song-card {
-      overflow: hidden;
+    .gear-button:hover, .icon-button:hover, .gear-button[aria-expanded="true"] {
+      border-color: var(--line);
+      background: var(--paper);
+    }
+
+    .gear-button { width: 46px; height: 46px; color: #555; }
+    .gear-button svg { width: 25px; height: 25px; }
+    svg { display: block; }
+
+    .menu {
+      position: absolute;
+      top: calc(100% + 9px);
+      right: 0;
+      width: min(310px, calc(100vw - 32px));
+      padding: 8px;
       border: 1px solid var(--line);
-      border-radius: 4px;
+      border-radius: 7px;
       background: var(--white);
-      animation: appear 180ms ease both;
+      box-shadow: 0 14px 40px #00000017;
     }
 
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
+    .menu[hidden] { display: none; }
+
+    .menu-label {
+      margin: 7px 10px 5px;
+      color: #999;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
-    .song-card-header {
-      min-height: 62px;
+    .menu-item {
+      width: 100%;
+      min-height: 48px;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 13px 16px;
-      border-bottom: 1px solid #e8e8e8;
-    }
-
-    .song-name {
-      min-width: 0;
-      flex: 1;
-      overflow-wrap: anywhere;
-      margin: 0;
-      color: #606060;
-      font-size: 14px;
-      font-weight: 650;
-    }
-
-    .song-status {
-      flex: 0 0 auto;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .remove-button {
-      width: 30px;
-      height: 30px;
-      display: grid;
-      place-items: center;
+      padding: 8px 10px;
       border: 0;
-      border-radius: 3px;
+      border-radius: 4px;
       background: transparent;
-      color: #858585;
-      font-size: 19px;
+      color: #565656;
+      text-align: left;
       cursor: pointer;
     }
 
-    .remove-button:hover {
-      background: var(--soft);
-      color: #555;
+    .menu-item:hover, .menu-item[aria-current="page"] { background: #f4f4f4; }
+    .menu-item svg { width: 19px; height: 19px; flex: 0 0 19px; color: #777; }
+    .menu-copy { min-width: 0; flex: 1; }
+    .menu-copy strong { display: block; font-size: 13px; font-weight: 650; }
+    .menu-copy small { display: block; overflow: hidden; margin-top: 2px; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .menu-count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .menu-rule { height: 1px; margin: 7px 4px; background: var(--line); }
+
+    main {
+      width: min(100% - 48px, 1000px);
+      margin: 0 auto;
+      padding: 60px 0 82px;
     }
 
-    .instrument-lane {
-      min-height: 132px;
-      display: grid;
-      grid-template-columns: 150px minmax(0, 1fr);
-    }
-
-    .instrument-side {
+    .content-heading {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 12px;
-      border-right: 1px solid #e8e8e8;
-      background: #fbfbfb;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
     }
 
-    .instrument-image {
-      width: 116px;
-      height: 68px;
-      object-fit: contain;
+    .content-heading h1 {
+      margin: 0;
+      color: #595959;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 500;
     }
 
-    .instrument-caption {
-      color: #666;
-      font-size: 11px;
-      font-weight: 650;
-    }
+    .view-count { color: var(--muted); font-size: 12px; }
 
-    .instrument-select {
+    .add-song {
       width: 100%;
-      max-width: 128px;
-      min-height: 30px;
-      padding: 4px 6px;
-      border: 1px solid #d1d1d1;
-      border-radius: 3px;
-      background: var(--white);
-      color: #666;
-      font-size: 11px;
-    }
-
-    .instrument-notes {
-      min-width: 0;
-      padding: 16px;
-    }
-
-    .instrument-notes-heading {
-      color: #858585;
-      font-size: 10px;
-      font-weight: 650;
-    }
-
-    .note-list {
+      min-height: 95px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px 0 0;
+      align-items: center;
+      gap: 17px;
+      padding: 18px 22px;
+      border: 1px solid var(--line-dark);
+      border-radius: 5px;
+      background: var(--white);
+      color: #626262;
+      text-align: left;
+      cursor: pointer;
+      transition: background 140ms ease, border-color 140ms ease;
     }
 
-    .note-box {
-      width: 76px;
-      min-height: 58px;
-      display: grid;
-      align-content: center;
-      gap: 4px;
-      border: 1px solid #d6d6d6;
-      border-radius: 3px;
-      background: #fafafa;
-      text-align: center;
-    }
+    .add-song:hover { border-color: #8c8c8c; background: #fcfcfc; }
+    .add-plus { width: 36px; height: 36px; display: grid; flex: 0 0 36px; place-items: center; border: 1px solid #bdbdbd; border-radius: 50%; font-size: 25px; font-weight: 300; line-height: 1; }
+    .add-song strong { display: block; font-size: 14px; font-weight: 650; }
+    .add-song small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 400; }
 
-    .note-name {
-      color: #5b5b5b;
-      font-size: 14px;
-      font-weight: 700;
-    }
+    .list-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 42px 0 13px; }
+    .list-heading h2 { margin: 0; color: #626262; font-size: 14px; font-weight: 700; }
+    .song-list { display: grid; gap: 13px; }
 
-    .note-time {
-      color: var(--muted);
-      font-size: 10px;
-      font-variant-numeric: tabular-nums;
-    }
+    .song-card { overflow: hidden; border: 1px solid var(--line); border-radius: 5px; background: var(--white); animation: appear 180ms ease both; }
+    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .song-header { min-height: 63px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+    .source-icon { width: 32px; height: 32px; display: grid; flex: 0 0 32px; place-items: center; border-radius: 4px; background: #f0f0f0; color: #666; font-size: 12px; font-weight: 700; }
+    .song-title-block { min-width: 0; flex: 1; }
+    .song-title { overflow-wrap: anywhere; margin: 0; color: #525252; font-size: 14px; font-weight: 650; }
+    .song-source { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .song-state { max-width: 180px; color: var(--muted); font-size: 11px; text-align: right; }
+    .song-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 2px; }
+    .icon-button { width: 34px; height: 34px; }
+    .icon-button svg { width: 17px; height: 17px; }
+    .icon-button.is-favorite { color: #555; }
+    .icon-button.is-favorite svg { fill: #777; }
+    .song-status { margin: 0 16px 13px; padding: 9px 10px; border-radius: 3px; background: #f6f6f6; color: #707070; font-size: 11px; line-height: 1.5; }
+    .song-status.error { background: #f6f1f1; color: #765c5c; }
+    .song-link { color: #626262; text-decoration: underline; text-underline-offset: 2px; }
 
-    .note-empty {
-      width: 100%;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
+    .analysis-note { margin: -3px 0 12px; color: #858585; font-size: 11px; line-height: 1.55; }
+    .instrument-list { display: grid; gap: 8px; padding: 12px; border-top: 1px solid #e9e9e9; }
+    .instrument-box { min-height: 73px; display: grid; grid-template-columns: 58px minmax(90px, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid #e1e1e1; border-radius: 4px; background: #fff; transition: background-color 160ms ease, border-color 160ms ease; }
+    .instrument-box.is-detected { border-color: #acd0b2; background: #f2f9f3; }
+    .instrument-box.is-detected .instrument-label { color: #356c40; }
+    .instrument-image { width: 52px; height: 52px; object-fit: contain; }
+    .instrument-label { color: #626262; font-size: 13px; font-weight: 650; }
+    .instrument-result { min-width: 96px; color: #8b8b8b; font-size: 11px; text-align: right; }
+    .instrument-box.is-detected .instrument-result { color: #477750; }
+    .tutorial-link { color: #777; font-size: 11px; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+    .tutorial-link:hover { color: #444; }
+    .pitch-area { padding: 12px 16px 15px; border-top: 1px solid #e9e9e9; }
+    .pitch-heading { display: flex; justify-content: space-between; gap: 10px; color: #888; font-size: 10px; font-weight: 650; }
+    .note-list { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 10px; }
+    .note-chip { min-width: 48px; padding: 6px 7px; border: 1px solid #dedede; border-radius: 3px; background: #fafafa; text-align: center; }
+    .note-name { display: block; color: #585858; font-size: 12px; font-weight: 700; }
+    .note-time { display: block; margin-top: 3px; color: #888; font-size: 9px; font-variant-numeric: tabular-nums; }
+    .empty-note { color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .empty-state { padding: 34px 16px; color: var(--muted); font-size: 13px; line-height: 1.6; text-align: center; }
+    .footnote { margin: 13px 0 0; color: #929292; font-size: 11px; line-height: 1.55; }
 
-    .footnote {
-      margin: 16px 0 0;
-      color: #929292;
-      font-size: 12px;
-      line-height: 1.5;
-    }
+    dialog { width: min(500px, calc(100% - 28px)); max-height: calc(100% - 28px); padding: 0; overflow: auto; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); box-shadow: 0 20px 65px #0002; }
+    dialog::backdrop { background: #22222266; backdrop-filter: blur(2px); }
+    .dialog-body { padding: 23px; }
+    .dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+    .dialog-header h2 { margin: 0; color: #555; font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 500; }
+    .dialog-header p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .close-button { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 3px; background: transparent; color: #777; font-size: 20px; cursor: pointer; }
+    .close-button:hover { background: var(--paper); }
+    .source-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 17px; }
+    .source-tab { min-height: 52px; padding: 6px 3px; border: 1px solid var(--line); border-radius: 4px; background: white; color: #777; font-size: 10px; cursor: pointer; }
+    .source-tab[aria-pressed="true"] { border-color: #777; background: #f6f6f6; color: #4f4f4f; }
+    .source-tab b { display: block; margin-bottom: 4px; font-size: 12px; }
+    .file-drop { min-height: 120px; display: grid; place-items: center; padding: 18px; border: 1px dashed #bbb; border-radius: 4px; background: #fdfdfd; text-align: center; cursor: pointer; }
+    .file-drop:hover { border-color: #777; background: #fafafa; }
+    .file-drop strong { display: block; margin-bottom: 5px; color: #5f5f5f; font-size: 13px; }
+    .file-drop span { color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .file-drop input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .field-label { display: block; margin-bottom: 7px; color: #626262; font-size: 12px; font-weight: 650; }
+    .url-row { display: flex; gap: 7px; }
+    .url-row input, .account-input { width: 100%; min-width: 0; height: 40px; padding: 0 10px; border: 1px solid #d1d1d1; border-radius: 4px; background: white; color: #555; font-size: 12px; }
+    .action-button { min-height: 40px; padding: 0 13px; border: 1px solid #5c5c5c; border-radius: 4px; background: #5c5c5c; color: white; font-size: 12px; cursor: pointer; }
+    .action-button:hover { background: #444; }
+    .helper { margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .warning { margin-top: 14px; padding: 10px; border-left: 2px solid #aaa; background: #f7f7f7; color: #777; font-size: 11px; line-height: 1.5; }
+    .account-form { display: grid; gap: 12px; }
+    .account-status { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    [hidden] { display: none !important; }
 
-    @media (max-width: 520px) {
-      .page-header {
-        padding-top: 40px;
-        padding-bottom: 36px;
-      }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #8888; outline-offset: 2px; }
 
-      main {
-        width: min(100% - 28px, 900px);
-      }
-
-      .import-button {
-        min-height: 82px;
-        padding: 16px;
-      }
-
-      .section-heading {
-        margin-top: 36px;
-      }
-
-      .song-card-header {
-        flex-wrap: wrap;
-      }
-
-      .instrument-lane {
-        grid-template-columns: 96px minmax(0, 1fr);
-      }
-
-      .instrument-side {
-        gap: 5px;
-        padding: 9px 6px;
-      }
-
-      .instrument-image {
-        width: 78px;
-        height: 58px;
-      }
-
-      .instrument-select {
-        padding: 4px 3px;
-        font-size: 10px;
-      }
-
-      .instrument-notes {
-        padding: 13px 10px;
-      }
-
-      .note-list {
-        gap: 5px;
-      }
-
-      .note-box {
-        width: 62px;
-        min-height: 52px;
-      }
+    @media (max-width: 600px) {
+      .topbar { height: 64px; padding: 0 18px; }
+      main { width: min(100% - 32px, 1000px); padding-top: 38px; }
+      .content-heading h1 { font-size: 25px; }
+      .add-song { min-height: 82px; padding: 14px; }
+      .instrument-list { gap: 6px; padding: 8px; }
+      .instrument-box { min-height: 66px; grid-template-columns: 42px minmax(72px, 1fr) auto; gap: 8px; padding: 7px; }
+      .instrument-image { width: 40px; height: 42px; }
+      .instrument-result { min-width: 76px; font-size: 10px; }
+      .tutorial-link { grid-column: 2 / 4; justify-self: end; margin-top: -4px; font-size: 10px; }
+      .instrument-label { font-size: 12px; }
+      .pitch-area { padding: 11px 9px; }
+      .note-list { gap: 4px; }
+      .note-chip { min-width: 42px; padding: 5px 4px; }
+      .song-header { flex-wrap: wrap; }
+      .song-state { order: 4; width: 100%; max-width: none; padding-left: 44px; text-align: left; }
+      .dialog-body { padding: 18px; }
+      .url-row { flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-      }
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
-  <header class="page-header">
-    <h1>NOTE SPLIT</h1>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="Note Split home">Note Split</a>
+    <div class="gear-wrap">
+      <button class="gear-button" id="gear-button" type="button" aria-label="Open settings menu" aria-haspopup="menu" aria-expanded="false" aria-controls="settings-menu" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.7 2.8h4.6l.7 2.1 1.8.8 2.1-.6 2.3 4-1.5 1.6v2.6l1.5 1.6-2.3 4-2.1-.6-1.8.8-.7 2.1H9.7L9 19.1l-1.8-.8-2.1.6-2.3-4 1.5-1.6v-2.6L2.8 9.1l2.3-4 2.1.6L9 4.9z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <nav class="menu" id="settings-menu" role="menu" aria-label="Account and library" hidden>
+        <p class="menu-label">Account</p>
+        <button class="menu-item" id="account-menu-item" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>
+          <span class="menu-copy"><strong id="account-name">Guest profile</strong><small id="account-detail">Sign in to add your email</small></span>
+          <span class="menu-count" id="account-action">Sign in</span>
+        </button>
+        <div class="menu-rule"></div>
+        <p class="menu-label">Your music</p>
+        <button class="menu-item" id="library-menu-item" type="button" role="menuitem" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5c3.2-1.3 6.2-.8 9 1.2v13c-2.8-2-5.8-2.5-9-1.2z"/><path d="M21 5.5c-3.2-1.3-6.2-.8-9 1.2v13c2.8-2 5.8-2.5 9-1.2z"/></svg>
+          <span class="menu-copy"><strong>Song library</strong><small>All songs you have added</small></span>
+          <span class="menu-count" id="library-count">0</span>
+        </button>
+        <button class="menu-item" id="favorites-menu-item" type="button" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.4-5.7-3-5.7 3 1.1-6.4-4.6-4.5 6.4-.9z"/></svg>
+          <span class="menu-copy"><strong>Favorites</strong><small>Songs you starred</small></span>
+          <span class="menu-count" id="favorite-count">0</span>
+        </button>
+      </nav>
+    </div>
   </header>
 
-  <main>
-    <button class="import-button" id="import-button" type="button">
-      <span class="plus" aria-hidden="true">+</span>
-      <span class="import-label">Import Song<span class="import-support">Choose an audio file from this device</span></span>
+  <main id="home">
+    <div class="content-heading">
+      <h1 id="view-title">Your songs</h1>
+      <span class="view-count" id="view-count">0 songs</span>
+    </div>
+    <button class="add-song" id="open-add" type="button">
+      <span class="add-plus" aria-hidden="true">+</span>
+      <span><strong>Import Song</strong><small>Choose an audio file or save a streaming link</small></span>
     </button>
-    <input class="file-input" id="audio-file" type="file" accept="audio/*" multiple aria-label="Choose audio files">
-
-    <section aria-labelledby="instrument-notes-title">
-      <div class="section-heading">
-        <h2 id="instrument-notes-title">Instrument Notes</h2>
-        <hr class="divider">
-      </div>
-      <div class="song-list" id="song-list" aria-live="polite">
-        <div class="empty-state" id="empty-state">Import a song, then choose an instrument to pair it with its detected notes.</div>
-      </div>
-      <p class="footnote">Pitch detection shows the strongest note estimate at each moment. Chords, layered instruments, and noisy recordings may be approximate. Audio is processed in your browser and is not uploaded.</p>
-    </section>
+      <div class="list-heading"><h2 id="list-title">Song library</h2></div>
+    <p class="analysis-note" id="analysis-note" role="status">Instrument recognition uses MediaPipe YAMNet in your browser. Internet is required to load the classifier and model.</p>
+    <section class="song-list" id="song-list" aria-live="polite"></section>
+    <p class="footnote">Instrument results are audio classifications, not isolated stems. Pitch notes are estimated from the full mix and are not assigned to individual instruments. Streaming links cannot be analyzed without provider audio access.</p>
   </main>
 
-  <script>
-    const fileInput = document.querySelector('#audio-file');
-    const importButton = document.querySelector('#import-button');
-    const songList = document.querySelector('#song-list');
-    const songs = [];
-    const instrumentImageCache = new Map();
-    let nextSongId = 1;
+  <dialog id="add-dialog" aria-labelledby="add-title">
+    <div class="dialog-body">
+      <div class="dialog-header"><div><h2 id="add-title">Import Song</h2><p>Choose an audio file or save a song link.</p></div><button class="close-button" type="button" data-close="add-dialog" aria-label="Close">×</button></div>
+      <div class="source-tabs" role="group" aria-label="Song source">
+        <button class="source-tab" type="button" data-source="audio" aria-pressed="true"><b>♫</b>Audio file</button>
+        <button class="source-tab" type="button" data-source="spotify" aria-pressed="false"><b>SP</b>Spotify</button>
+        <button class="source-tab" type="button" data-source="apple" aria-pressed="false"><b>♪</b>Apple Music</button>
+        <button class="source-tab" type="button" data-source="youtube" aria-pressed="false"><b>▶</b>YouTube</button>
+      </div>
+      <section id="audio-panel">
+        <label class="file-drop" for="audio-file"><span><strong>Choose an audio file</strong><span>MP3, WAV, M4A, or another browser-supported format</span></span><input id="audio-file" type="file" accept="audio/*" multiple></label>
+        <p class="helper">Audio is analyzed locally in your browser and is not uploaded.</p>
+      </section>
+      <section id="link-panel" hidden>
+        <label class="field-label" for="song-url">Paste a song link</label>
+        <div class="url-row"><input id="song-url" type="url" placeholder="https://..." autocomplete="url"><button class="action-button" id="save-link" type="button">Add link</button></div>
+        <p class="helper">Paste a song URL from the selected service.</p>
+      </section>
+      <div class="warning">Streaming services do not provide their audio stream to this standalone page. Import a local audio file to estimate notes.</div>
+    </div>
+  </dialog>
 
-    importButton.addEventListener('click', () => fileInput.click());
+  <dialog id="account-dialog" aria-labelledby="account-title">
+    <form class="dialog-body account-form" id="account-form">
+      <div class="dialog-header"><div><h2 id="account-title">Your profile</h2><p>This standalone demo keeps profile information on this device.</p></div><button class="close-button" type="button" data-close="account-dialog" aria-label="Close">×</button></div>
+      <p class="account-status" id="account-status">Add an email to label your local profile. This does not create an online account.</p>
+      <label class="field-label" for="account-email">Email</label>
+      <input class="account-input" id="account-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+      <button class="action-button" id="save-account" type="submit">Save profile</button>
+      <button class="menu-item" id="sign-out" type="button" hidden>Sign out on this device</button>
+    </form>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = 'notesplit-library-v1';
+    const PROFILE_KEY = 'notesplit-profile-v1';
+    const songList = document.querySelector('#song-list');
+    const addDialog = document.querySelector('#add-dialog');
+    const accountDialog = document.querySelector('#account-dialog');
+    const menu = document.querySelector('#settings-menu');
+    const gearButton = document.querySelector('#gear-button');
+    const fileInput = document.querySelector('#audio-file');
+    const songUrl = document.querySelector('#song-url');
+    const audioPanel = document.querySelector('#audio-panel');
+    const linkPanel = document.querySelector('#link-panel');
+    const sourceTabs = [...document.querySelectorAll('.source-tab')];
+    const instrumentImages = new Map();
+    const instrumentCatalog = [
+      { name: 'Guitar', labels: ['guitar', 'acoustic guitar', 'electric guitar', 'steel guitar', 'slide guitar'] },
+      { name: 'Trumpet', labels: ['trumpet'] },
+      { name: 'Flute', labels: ['flute'] },
+      { name: 'Clarinet', labels: ['clarinet'] },
+      { name: 'Piano', labels: ['piano', 'electric piano'] },
+      { name: 'Bass', labels: ['bass guitar', 'double bass'] },
+      { name: 'Drums', labels: ['drum kit', 'drum machine', 'snare drum', 'bass drum', 'drum'] },
+      { name: 'Violin', labels: ['violin, fiddle'] },
+      { name: 'Saxophone', labels: ['saxophone'] },
+      { name: 'Cello', labels: ['cello'] },
+      { name: 'Trombone', labels: ['trombone'] },
+      { name: 'French horn', labels: ['french horn'] }
+    ];
+    let songs = readStorage(STORAGE_KEY, []);
+    let profile = readStorage(PROFILE_KEY, '');
+    let currentView = 'library';
+    let selectedSource = 'audio';
+    let nextId = Date.now();
+    let classifierPromise;
+    let audioClassifier;
+
+    function readStorage(key, fallback) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key));
+        return value ?? fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function saveStorage() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(songs)); } catch { /* Storage may be disabled. */ }
+    }
+
+    function saveProfile() {
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch { /* Storage may be disabled. */ }
+    }
+
+    function closeMenu() {
+      menu.hidden = true;
+      gearButton.setAttribute('aria-expanded', 'false');
+    }
+
+    gearButton.addEventListener('click', () => {
+      const opening = menu.hidden;
+      menu.hidden = !opening;
+      gearButton.setAttribute('aria-expanded', String(opening));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.gear-wrap')) closeMenu();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMenu();
+    });
+
+    document.querySelector('#account-menu-item').addEventListener('click', () => {
+      closeMenu();
+      document.querySelector('#account-email').value = profile;
+      document.querySelector('#sign-out').hidden = !profile;
+      document.querySelector('#account-status').textContent = profile
+        ? `Local profile: ${profile}`
+        : 'Add an email to label your local profile. This does not create an online account.';
+      accountDialog.showModal();
+    });
+
+    document.querySelector('#account-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      profile = document.querySelector('#account-email').value.trim();
+      saveProfile();
+      accountDialog.close();
+      renderMenuCounts();
+    });
+
+    document.querySelector('#sign-out').addEventListener('click', () => {
+      profile = '';
+      saveProfile();
+      accountDialog.close();
+      renderMenuCounts();
+    });
+
+    document.querySelectorAll('[data-close]').forEach((button) => {
+      button.addEventListener('click', () => document.querySelector(`#${button.dataset.close}`).close());
+    });
+
+    document.querySelector('#library-menu-item').addEventListener('click', () => setView('library'));
+    document.querySelector('#favorites-menu-item').addEventListener('click', () => setView('favorites'));
+
+    function setView(view) {
+      currentView = view;
+      closeMenu();
+      document.querySelector('#view-title').textContent = view === 'library' ? 'Your songs' : 'Favorites';
+      document.querySelector('#list-title').textContent = view === 'library' ? 'Song library' : 'Favorite songs';
+      document.querySelector('#library-menu-item').setAttribute('aria-current', view === 'library' ? 'page' : 'false');
+      document.querySelector('#favorites-menu-item').setAttribute('aria-current', view === 'favorites' ? 'page' : 'false');
+      renderSongs();
+    }
+
+    document.querySelector('#open-add').addEventListener('click', () => addDialog.showModal());
+    addDialog.addEventListener('click', (event) => {
+      if (event.target === addDialog) addDialog.close();
+    });
+    accountDialog.addEventListener('click', (event) => {
+      if (event.target === accountDialog) accountDialog.close();
+    });
+
+    sourceTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        selectedSource = tab.dataset.source;
+        sourceTabs.forEach((item) => item.setAttribute('aria-pressed', String(item === tab)));
+        audioPanel.hidden = selectedSource !== 'audio';
+        linkPanel.hidden = selectedSource === 'audio';
+        if (selectedSource !== 'audio') songUrl.focus();
+      });
+    });
+
     fileInput.addEventListener('change', async () => {
       const files = [...fileInput.files];
       fileInput.value = '';
+      addDialog.close();
       for (const file of files) {
-        const song = {
-          id: nextSongId++,
-          name: file.name,
-          status: 'Reading audio…',
-          instrument: '',
-          notes: [],
-          error: false
-        };
-        songs.unshift(song);
-        renderSongs();
+        const song = addSong({ name: file.name, source: 'audio', favorite: false, status: 'Reading audio…', notes: [], instrumentAnalysis: 'loading', instrumentResults: {} });
         try {
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (!AudioContextClass) throw new Error('Audio is not supported in this browser.');
-          const context = new AudioContextClass();
-          const audioBuffer = await context.decodeAudioData(await file.arrayBuffer());
-          await context.close();
+          if (!AudioContextClass) throw new Error('unsupported');
+          const audioContext = new AudioContextClass();
+          const buffer = await audioContext.decodeAudioData(await file.arrayBuffer());
+          await audioContext.close();
+          song.duration = formatTime(buffer.duration);
+          song.status = 'Loading instrument classifier…';
+          renderSongs();
+          try {
+            const classifier = await loadInstrumentClassifier();
+            song.instrumentResults = await classifyInstruments(classifier, buffer, (percent) => {
+              song.status = `Checking instruments… ${percent}%`;
+              renderSongs();
+            });
+            song.instrumentAnalysis = 'complete';
+          } catch (error) {
+            song.instrumentAnalysis = 'unavailable';
+            song.instrumentError = error.message;
+          }
           song.status = 'Finding notes…';
           renderSongs();
-          song.notes = await detectNotes(audioBuffer, (percent) => {
+          song.notes = await estimateNotes(buffer, (percent) => {
             song.status = `Finding notes… ${percent}%`;
             renderSongs();
           });
-          song.status = `${formatTime(audioBuffer.duration)} · ${song.notes.length} notes found`;
-        } catch (error) {
-          song.status = error.message.includes('supported')
-            ? error.message
-            : 'Could not read this audio file. Try a WAV or MP3 file.';
+          song.status = song.notes.length ? `${song.duration} · ${song.notes.length} pitch events` : `${song.duration} · no clear pitches found`;
+        } catch {
+          song.status = 'Could not read this file. Try WAV or MP3.';
           song.error = true;
         }
+        saveStorage();
         renderSongs();
       }
     });
 
-    function renderSongs() {
-      songList.replaceChildren();
-      if (!songs.length) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.textContent = 'Import a song, then choose an instrument to pair it with its detected notes.';
-        songList.append(emptyState);
+    document.querySelector('#save-link').addEventListener('click', saveStreamingLink);
+    songUrl.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); saveStreamingLink(); }
+    });
+
+    function saveStreamingLink() {
+      const rawUrl = songUrl.value.trim();
+      let parsed;
+      try { parsed = new URL(rawUrl); } catch {
+        songUrl.setCustomValidity('Enter a valid song URL.');
+        songUrl.reportValidity();
+        songUrl.addEventListener('input', () => songUrl.setCustomValidity(''), { once: true });
         return;
       }
+      const hosts = {
+        spotify: ['open.spotify.com', 'spotify.link'],
+        apple: ['music.apple.com', 'itunes.apple.com'],
+        youtube: ['youtube.com', 'youtu.be', 'music.youtube.com']
+      };
+      if (parsed.protocol !== 'https:' || !hosts[selectedSource].some((host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`))) {
+        songUrl.setCustomValidity(`That link does not appear to be from ${sourceName(selectedSource)}.`);
+        songUrl.reportValidity();
+        songUrl.addEventListener('input', () => songUrl.setCustomValidity(''), { once: true });
+        return;
+      }
+      const name = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).at(-1) || sourceName(selectedSource) + ' song').replaceAll('-', ' ');
+      addSong({ name, source: selectedSource, url: parsed.href, favorite: false, status: 'Link saved · provider audio access is required for analysis', notes: [], instrumentAnalysis: 'unavailable', instrumentResults: {} });
+      songUrl.value = '';
+      addDialog.close();
+    }
 
-      songs.forEach((song) => {
-        const card = document.createElement('article');
-        card.className = 'song-card';
-        const header = document.createElement('div');
-        header.className = 'song-card-header';
-        const name = document.createElement('h3');
-        name.className = 'song-name';
-        name.textContent = song.name;
-        const status = document.createElement('span');
-        status.className = 'song-status';
-        status.textContent = song.status;
-        const remove = document.createElement('button');
-        remove.className = 'remove-button';
-        remove.type = 'button';
-        remove.textContent = '×';
-        remove.setAttribute('aria-label', `Remove ${song.name}`);
-        remove.addEventListener('click', () => {
-          const index = songs.findIndex((item) => item.id === song.id);
-          if (index >= 0) songs.splice(index, 1);
-          renderSongs();
-        });
-        header.append(name, status, remove);
-        card.append(header);
+    function addSong(details) {
+      const song = { id: nextId++, ...details };
+      songs.unshift(song);
+      saveStorage();
+      renderSongs();
+      return song;
+    }
 
-        const lane = document.createElement('div');
-        lane.className = 'instrument-lane';
-        const instrumentSide = document.createElement('div');
-        instrumentSide.className = 'instrument-side';
+    function sourceName(source) {
+      return ({ audio: 'Audio file', spotify: 'Spotify', apple: 'Apple Music', youtube: 'YouTube' })[source] || 'Song';
+    }
+
+    function sourceMark(source) {
+      return ({ audio: '♫', spotify: 'SP', apple: '♪', youtube: '▶' })[source] || '♪';
+    }
+
+    function renderMenuCounts() {
+      document.querySelector('#library-count').textContent = String(songs.length);
+      document.querySelector('#favorite-count').textContent = String(songs.filter((song) => song.favorite).length);
+      document.querySelector('#account-name').textContent = profile ? 'Local profile' : 'Guest profile';
+      document.querySelector('#account-detail').textContent = profile || 'Sign in to add your email';
+      document.querySelector('#account-action').textContent = profile ? 'Edit' : 'Sign in';
+    }
+
+    function renderSongs() {
+      renderMenuCounts();
+      const visibleSongs = currentView === 'favorites' ? songs.filter((song) => song.favorite) : songs;
+      document.querySelector('#view-count').textContent = `${visibleSongs.length} ${visibleSongs.length === 1 ? 'song' : 'songs'}`;
+      songList.replaceChildren();
+      if (!visibleSongs.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = currentView === 'favorites'
+          ? 'Star a song to keep it in your favorites.'
+          : 'Your library is empty. Import an audio file or add a streaming link to get started.';
+        songList.append(empty);
+        return;
+      }
+      visibleSongs.forEach((song) => songList.append(createSongCard(song)));
+    }
+
+    function createSongCard(song) {
+      const card = document.createElement('article');
+      card.className = 'song-card';
+      const header = document.createElement('div');
+      header.className = 'song-header';
+      const mark = document.createElement('span');
+      mark.className = 'source-icon';
+      mark.textContent = sourceMark(song.source);
+      mark.setAttribute('aria-hidden', 'true');
+      const titleBlock = document.createElement('div');
+      titleBlock.className = 'song-title-block';
+      const title = document.createElement('h3');
+      title.className = 'song-title';
+      title.textContent = song.name;
+      const source = document.createElement('p');
+      source.className = 'song-source';
+      source.textContent = sourceName(song.source);
+      titleBlock.append(title, source);
+      const status = document.createElement('span');
+      status.className = 'song-state';
+      status.textContent = song.status;
+      const actions = document.createElement('div');
+      actions.className = 'song-actions';
+      const favorite = document.createElement('button');
+      favorite.className = `icon-button${song.favorite ? ' is-favorite' : ''}`;
+      favorite.type = 'button';
+      favorite.setAttribute('aria-label', song.favorite ? `Remove ${song.name} from favorites` : `Add ${song.name} to favorites`);
+      favorite.setAttribute('aria-pressed', String(Boolean(song.favorite)));
+      favorite.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.4-5.7-3-5.7 3 1.1-6.4-4.6-4.5 6.4-.9z"/></svg>';
+      favorite.addEventListener('click', () => {
+        song.favorite = !song.favorite;
+        saveStorage();
+        renderSongs();
+      });
+      actions.append(favorite);
+      if (song.url) {
+        const open = document.createElement('a');
+        open.className = 'icon-button';
+        open.href = song.url;
+        open.target = '_blank';
+        open.rel = 'noopener noreferrer';
+        open.setAttribute('aria-label', `Open ${song.name} on ${sourceName(song.source)}`);
+        open.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>';
+        actions.append(open);
+      }
+      const remove = document.createElement('button');
+      remove.className = 'icon-button';
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove ${song.name}`);
+      remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+      remove.addEventListener('click', () => {
+        songs = songs.filter((item) => item.id !== song.id);
+        saveStorage();
+        renderSongs();
+      });
+      actions.append(remove);
+      header.append(mark, titleBlock, status, actions);
+      card.append(header);
+      if (song.url) {
+        const linkStatus = document.createElement('p');
+        linkStatus.className = 'song-status';
+        linkStatus.textContent = song.status;
+        card.append(linkStatus);
+      }
+      card.append(createInstrumentList(song));
+      card.append(createPitchNotes(song));
+      return card;
+    }
+
+    function createInstrumentList(song) {
+      const list = document.createElement('div');
+      list.className = 'instrument-list';
+      instrumentCatalog.forEach((instrument) => {
+        const result = song.instrumentResults?.[instrument.name];
+        const detected = song.instrumentAnalysis === 'complete' && result?.included;
+        const state = song.instrumentAnalysis === 'complete' ? (detected ? 'detected' : 'absent') : (song.instrumentAnalysis || 'pending');
+        const box = document.createElement('div');
+        box.className = `instrument-box${detected ? ' is-detected' : ''}`;
+        box.dataset.state = state;
         const image = document.createElement('img');
         image.className = 'instrument-image';
-        image.src = createInstrumentImage(song.instrument);
-        image.alt = song.instrument ? `${song.instrument} illustration` : 'Choose an instrument';
-        const caption = document.createElement('span');
-        caption.className = 'instrument-caption';
-        caption.textContent = song.instrument || 'Instrument';
-        const select = document.createElement('select');
-        select.className = 'instrument-select';
-        select.setAttribute('aria-label', `Choose instrument for ${song.name}`);
-        [
-          ['', 'Choose instrument'],
-          ['Piano', 'Piano'],
-          ['Guitar', 'Guitar'],
-          ['Bass', 'Bass'],
-          ['Drums', 'Drums'],
-          ['Violin', 'Violin'],
-          ['Voice', 'Voice']
-        ].forEach(([value, label]) => {
-          const option = document.createElement('option');
-          option.value = value;
-          option.textContent = label;
-          select.append(option);
-        });
-        select.value = song.instrument;
-        select.addEventListener('change', () => {
-          song.instrument = select.value;
-          image.src = createInstrumentImage(song.instrument);
-          image.alt = song.instrument ? `${song.instrument} illustration` : 'Choose an instrument';
-          caption.textContent = song.instrument || 'Instrument';
-        });
-        instrumentSide.append(image, caption, select);
-
-        const instrumentNotes = document.createElement('div');
-        instrumentNotes.className = 'instrument-notes';
-        const notesHeading = document.createElement('div');
-        notesHeading.className = 'instrument-notes-heading';
-        notesHeading.textContent = 'DETECTED NOTES';
-        const noteList = document.createElement('div');
-        noteList.className = 'note-list';
-        if (song.notes.length) {
-          song.notes.forEach((note) => {
-            const box = document.createElement('div');
-            box.className = 'note-box';
-            const noteName = document.createElement('span');
-            noteName.className = 'note-name';
-            noteName.textContent = note.name;
-            const noteTime = document.createElement('span');
-            noteTime.className = 'note-time';
-            noteTime.textContent = formatTime(note.start);
-            box.append(noteName, noteTime);
-            noteList.append(box);
-          });
-        } else {
-          const placeholder = document.createElement('span');
-          placeholder.className = 'note-empty';
-          placeholder.textContent = song.error ? 'Notes are unavailable for this file.' : 'Analyzing audio…';
-          noteList.append(placeholder);
-        }
-        instrumentNotes.append(notesHeading, noteList);
-        lane.append(instrumentSide, instrumentNotes);
-        card.append(lane);
-        songList.append(card);
+        image.src = instrumentImage(instrument.name);
+        image.alt = '';
+        image.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('span');
+        label.className = 'instrument-label';
+        label.textContent = instrument.name;
+        const status = document.createElement('span');
+        status.className = 'instrument-result';
+        if (song.instrumentAnalysis === 'loading') status.textContent = 'Analyzing…';
+        else if (song.instrumentAnalysis === 'unavailable') status.textContent = song.url ? 'Audio unavailable' : 'Analyzer unavailable';
+        else if (!song.instrumentAnalysis) status.textContent = 'Not analyzed';
+        else status.textContent = detected ? `Detected · ${Math.round(result.score * 100)}%` : 'Not detected';
+        const tutorial = document.createElement('a');
+        tutorial.className = 'tutorial-link';
+        tutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(`how to play ${instrument.name} tutorial`)}`;
+        tutorial.target = '_blank';
+        tutorial.rel = 'noopener noreferrer';
+        tutorial.textContent = 'How to play on YouTube ↗';
+        tutorial.setAttribute('aria-label', `YouTube tutorials for playing ${instrument.name}`);
+        box.append(image, label, status, tutorial);
+        list.append(box);
       });
+      return list;
     }
 
-    function createInstrumentImage(instrument) {
-      const key = instrument || 'unassigned';
-      if (instrumentImageCache.has(key)) return instrumentImageCache.get(key);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 240;
-      canvas.height = 140;
-      const context = canvas.getContext('2d');
-      context.lineWidth = 5;
-      context.lineCap = 'round';
-      context.lineJoin = 'round';
-      context.strokeStyle = '#777';
-      context.fillStyle = '#e5e5e5';
-
-      if (instrument === 'Piano') {
-        context.fillRect(28, 38, 184, 68);
-        context.strokeRect(28, 38, 184, 68);
-        for (let keyIndex = 0; keyIndex < 7; keyIndex++) {
-          const x = 32 + keyIndex * 25;
-          context.fillStyle = '#fff';
-          context.fillRect(x, 42, 24, 59);
-          context.strokeRect(x, 42, 24, 59);
-        }
-        context.fillStyle = '#777';
-        [49, 74, 124, 149, 174].forEach((x) => context.fillRect(x, 42, 13, 36));
-      } else if (instrument === 'Drums') {
-        context.beginPath();
-        context.ellipse(116, 81, 40, 16, 0, 0, Math.PI * 2);
-        context.fill();
-        context.stroke();
-        context.beginPath();
-        context.ellipse(116, 78, 40, 16, 0, 0, Math.PI * 2);
-        context.fillStyle = '#f8f8f8';
-        context.fill();
-        context.stroke();
-        [[72, 52, 18], [116, 42, 20], [160, 52, 18]].forEach(([x, y, radius]) => {
-          context.beginPath();
-          context.ellipse(x, y, radius, 12, 0, 0, Math.PI * 2);
-          context.fillStyle = '#e5e5e5';
-          context.fill();
-          context.stroke();
+    function createPitchNotes(song) {
+      const area = document.createElement('div');
+      area.className = 'pitch-area';
+      const heading = document.createElement('div');
+      heading.className = 'pitch-heading';
+      const label = document.createElement('span');
+      label.textContent = 'ESTIMATED PITCH EVENTS · FULL MIX';
+      const count = document.createElement('span');
+      count.textContent = song.notes?.length ? `${song.notes.length} events` : '';
+      heading.append(label, count);
+      const noteList = document.createElement('div');
+      noteList.className = 'note-list';
+      if (song.notes?.length) {
+        song.notes.forEach((note) => {
+          const chip = document.createElement('div');
+          chip.className = 'note-chip';
+          const name = document.createElement('span');
+          name.className = 'note-name';
+          name.textContent = note.name;
+          const time = document.createElement('span');
+          time.className = 'note-time';
+          time.textContent = formatTime(note.start);
+          chip.append(name, time);
+          noteList.append(chip);
         });
-        context.beginPath();
-        context.moveTo(34, 34);
-        context.lineTo(70, 34);
-        context.moveTo(170, 29);
-        context.lineTo(208, 29);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(53, 35);
-        context.lineTo(53, 103);
-        context.moveTo(190, 30);
-        context.lineTo(190, 102);
-        context.moveTo(95, 95);
-        context.lineTo(88, 124);
-        context.moveTo(137, 95);
-        context.lineTo(144, 124);
-        context.stroke();
+      } else {
+        const empty = document.createElement('span');
+        empty.className = 'empty-note';
+        empty.textContent = song.error ? 'Notes unavailable for this track.' : song.url ? 'Import audio to estimate notes.' : 'No pitch events found yet.';
+        noteList.append(empty);
+      }
+      area.append(heading, noteList);
+      return area;
+    }
+
+    function instrumentImage(instrument) {
+      const key = instrument || 'unassigned';
+      if (instrumentImages.has(key)) return instrumentImages.get(key);
+      const canvas = document.createElement('canvas');
+      canvas.width = 220;
+      canvas.height = 130;
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#737373';
+      ctx.fillStyle = '#e7e7e7';
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (instrument === 'Piano') {
+        ctx.fillRect(28, 39, 164, 60);
+        ctx.strokeRect(28, 39, 164, 60);
+        for (let key = 0; key < 7; key++) {
+          const x = 32 + key * 22;
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(x, 43, 21, 52);
+          ctx.strokeRect(x, 43, 21, 52);
+        }
+        ctx.fillStyle = '#777';
+        [47, 69, 113, 135, 157].forEach((x) => ctx.fillRect(x, 43, 11, 31));
+      } else if (instrument === 'Drums') {
+        ctx.beginPath(); ctx.ellipse(111, 77, 38, 15, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(111, 73, 38, 15, 0, 0, Math.PI * 2); ctx.fillStyle = '#fafafa'; ctx.fill(); ctx.stroke();
+        [[70, 49, 18], [111, 40, 19], [152, 49, 18]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.ellipse(x, y, r, 11, 0, 0, Math.PI * 2); ctx.fillStyle = '#e7e7e7'; ctx.fill(); ctx.stroke(); });
+        ctx.beginPath(); ctx.moveTo(49, 54); ctx.lineTo(49, 98); ctx.moveTo(173, 54); ctx.lineTo(173, 98); ctx.moveTo(92, 88); ctx.lineTo(86, 115); ctx.moveTo(130, 88); ctx.lineTo(136, 115); ctx.stroke();
       } else if (instrument === 'Voice') {
-        context.beginPath();
-        context.roundRect(96, 22, 48, 70, 23);
-        context.fill();
-        context.stroke();
-        context.beginPath();
-        context.arc(120, 61, 36, Math.PI, 0);
-        context.lineTo(156, 71);
-        context.arc(120, 71, 36, 0, Math.PI);
-        context.stroke();
-        context.beginPath();
-        context.moveTo(120, 107);
-        context.lineTo(120, 123);
-        context.moveTo(96, 124);
-        context.lineTo(144, 124);
-        context.stroke();
-      } else if (instrument === 'Violin') {
-        context.beginPath();
-        context.moveTo(116, 24);
-        context.bezierCurveTo(93, 34, 108, 49, 91, 59);
-        context.bezierCurveTo(68, 72, 84, 117, 120, 122);
-        context.bezierCurveTo(156, 117, 172, 72, 149, 59);
-        context.bezierCurveTo(132, 49, 147, 34, 124, 24);
-        context.closePath();
-        context.fill();
-        context.stroke();
-        context.beginPath();
-        context.moveTo(120, 24);
-        context.lineTo(120, 120);
-        context.moveTo(113, 50);
-        context.lineTo(127, 50);
-        context.stroke();
+        ctx.beginPath(); ctx.roundRect(92, 21, 36, 64, 18); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(110, 63, 30, Math.PI, 0); ctx.lineTo(140, 68); ctx.arc(110, 68, 30, 0, Math.PI); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(110, 98); ctx.lineTo(110, 115); ctx.moveTo(90, 116); ctx.lineTo(130, 116); ctx.stroke();
+      } else if (instrument === 'Violin' || instrument === 'Cello') {
+        ctx.beginPath(); ctx.moveTo(106, 21); ctx.bezierCurveTo(86, 31, 101, 44, 82, 55); ctx.bezierCurveTo(64, 69, 78, 107, 110, 114); ctx.bezierCurveTo(142, 107, 156, 69, 138, 55); ctx.bezierCurveTo(119, 44, 134, 31, 114, 21); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(110, 22); ctx.lineTo(110, 112); ctx.moveTo(103, 47); ctx.lineTo(117, 47); ctx.stroke();
+      } else if (instrument === 'Trumpet' || instrument === 'Trombone' || instrument === 'French horn') {
+        ctx.beginPath(); ctx.moveTo(34, 64); ctx.lineTo(151, 64); ctx.lineTo(151, 57); ctx.lineTo(174, 46); ctx.lineTo(174, 84); ctx.lineTo(151, 73); ctx.lineTo(151, 66); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(58, 64); ctx.lineTo(58, 51); ctx.lineTo(69, 51); ctx.lineTo(69, 64); ctx.moveTo(86, 64); ctx.lineTo(86, 49); ctx.lineTo(97, 49); ctx.lineTo(97, 64); ctx.moveTo(114, 64); ctx.lineTo(114, 51); ctx.lineTo(125, 51); ctx.lineTo(125, 64); ctx.stroke();
+        if (instrument === 'Trombone') { ctx.beginPath(); ctx.moveTo(35, 76); ctx.lineTo(105, 76); ctx.lineTo(105, 102); ctx.lineTo(43, 102); ctx.lineTo(43, 76); ctx.stroke(); }
+        if (instrument === 'French horn') { ctx.beginPath(); ctx.arc(110, 65, 27, -1.2, 1.2); ctx.stroke(); }
+      } else if (instrument === 'Flute' || instrument === 'Clarinet' || instrument === 'Saxophone') {
+        if (instrument === 'Saxophone') {
+          ctx.beginPath(); ctx.moveTo(113, 23); ctx.lineTo(113, 82); ctx.bezierCurveTo(113, 96, 91, 98, 91, 84); ctx.lineTo(91, 75); ctx.moveTo(106, 24); ctx.lineTo(120, 24); ctx.moveTo(91, 84); ctx.lineTo(78, 96); ctx.lineTo(78, 107); ctx.stroke();
+          [39, 51, 63, 76].forEach((y) => { ctx.beginPath(); ctx.arc(107, y, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#777'; ctx.fill(); });
+        } else {
+          const vertical = instrument === 'Clarinet';
+          ctx.beginPath();
+          if (vertical) { ctx.moveTo(110, 23); ctx.lineTo(110, 102); ctx.lineTo(100, 111); ctx.lineTo(120, 111); ctx.lineTo(110, 102); }
+          else { ctx.moveTo(36, 66); ctx.lineTo(180, 66); ctx.moveTo(36, 59); ctx.lineTo(36, 73); ctx.moveTo(180, 59); ctx.lineTo(180, 73); }
+          ctx.stroke();
+          for (let hole = 0; hole < 5; hole++) {
+            ctx.beginPath();
+            if (vertical) ctx.arc(110, 42 + hole * 12, 2.5, 0, Math.PI * 2);
+            else ctx.arc(59 + hole * 23, 66, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#777'; ctx.fill();
+          }
+        }
       } else if (instrument === 'Guitar' || instrument === 'Bass') {
         const bass = instrument === 'Bass';
-        context.beginPath();
-        context.moveTo(111, 71);
-        context.bezierCurveTo(95, 57, bass ? 78 : 74, 72, bass ? 82 : 79, 93);
-        context.bezierCurveTo(84, 118, 106, 126, 120, 112);
-        context.bezierCurveTo(134, 126, 156, 118, 161, 93);
-        context.bezierCurveTo(bass ? 162 : 166, 72, 145, 57, 129, 71);
-        context.closePath();
-        context.fill();
-        context.stroke();
-        context.fillStyle = '#ddd';
-        context.fillRect(115, 22, 10, 60);
-        context.strokeRect(115, 22, 10, 60);
-        context.fillStyle = '#777';
-        context.fillRect(111, 17, 18, 11);
-        context.beginPath();
-        context.arc(120, 92, 8, 0, Math.PI * 2);
-        context.stroke();
-        context.beginPath();
-        for (let string = 0; string < (bass ? 4 : 6); string++) {
-          const x = bass ? 117 + string * 2 : 116 + string * 1.6;
-          context.moveTo(x, 22);
-          context.lineTo(x, 109);
-        }
-        context.stroke();
+        ctx.beginPath(); ctx.moveTo(101, 68); ctx.bezierCurveTo(84, 51, bass ? 69 : 64, 66, 72, 86); ctx.bezierCurveTo(77, 108, 98, 115, 110, 101); ctx.bezierCurveTo(122, 115, 143, 108, 148, 86); ctx.bezierCurveTo(156, 66, 136, 51, 119, 68); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillRect(106, 22, 8, 55); ctx.strokeRect(106, 22, 8, 55); ctx.fillStyle = '#777'; ctx.fillRect(102, 17, 16, 10);
+        ctx.beginPath(); ctx.arc(110, 84, 7, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); for (let string = 0; string < (bass ? 4 : 6); string++) { const x = bass ? 107 + string * 2 : 107 + string * 1.2; ctx.moveTo(x, 22); ctx.lineTo(x, 101); } ctx.stroke();
       } else {
-        context.beginPath();
-        context.arc(105, 88, 17, 0, Math.PI * 2);
-        context.fill();
-        context.stroke();
-        context.beginPath();
-        context.moveTo(119, 84);
-        context.lineTo(119, 33);
-        context.lineTo(157, 41);
-        context.lineTo(157, 87);
-        context.stroke();
-        context.beginPath();
-        context.arc(143, 91, 14, 0, Math.PI * 2);
-        context.fill();
-        context.stroke();
+        ctx.beginPath(); ctx.arc(98, 88, 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(111, 83); ctx.lineTo(111, 34); ctx.lineTo(148, 40); ctx.lineTo(148, 84); ctx.stroke();
+        ctx.beginPath(); ctx.arc(136, 89, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
-
-      const imageData = canvas.toDataURL('image/png');
-      instrumentImageCache.set(key, imageData);
-      return imageData;
+      const dataUrl = canvas.toDataURL('image/png');
+      instrumentImages.set(key, dataUrl);
+      return dataUrl;
     }
 
-    async function detectNotes(buffer, onProgress) {
+    function loadInstrumentClassifier() {
+      if (audioClassifier) return Promise.resolve(audioClassifier);
+      if (!classifierPromise) {
+        classifierPromise = (async () => {
+          const mediaPipe = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@0.10.21/audio_bundle.mjs');
+          const files = await mediaPipe.FilesetResolver.forAudioTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@0.10.21/wasm');
+          audioClassifier = await mediaPipe.AudioClassifier.createFromOptions(files, {
+            baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite' },
+            runningMode: 'AUDIO_CLIPS',
+            maxResults: -1,
+            scoreThreshold: 0.04
+          });
+          return audioClassifier;
+        })().catch((error) => {
+          classifierPromise = null;
+          throw error;
+        });
+      }
+      return classifierPromise;
+    }
+
+    async function classifyInstruments(classifier, buffer, onProgress) {
+      const samples = buffer.getChannelData(0);
+      const sampleRate = buffer.sampleRate;
+      const chunkDuration = 2;
+      const chunkSize = Math.max(15600, Math.round(sampleRate * chunkDuration));
+      const chunkCount = Math.min(30, Math.max(1, Math.ceil(buffer.duration / chunkDuration)));
+      const scores = new Map(instrumentCatalog.map((instrument) => [instrument.name, { score: 0, hits: 0 }]));
+
+      for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++) {
+        const availableDuration = Math.max(0, buffer.duration - chunkDuration);
+        const startSeconds = chunkCount === 1 ? 0 : availableDuration * chunkIndex / (chunkCount - 1);
+        const start = Math.floor(startSeconds * sampleRate);
+        const chunk = new Float32Array(chunkSize);
+        chunk.set(samples.subarray(start, Math.min(samples.length, start + chunkSize)));
+        const output = classifier.classify(chunk, sampleRate);
+        const results = Array.isArray(output) ? output : [output];
+        const categories = results.flatMap((result) => (result.classifications || []).flatMap((classification) => classification.categories || []));
+
+        for (const category of categories) {
+          const label = (category.categoryName || category.displayName || '').toLowerCase();
+          for (const instrument of instrumentCatalog) {
+            if (!instrument.labels.includes(label)) continue;
+            const current = scores.get(instrument.name);
+            current.score = Math.max(current.score, category.score || 0);
+            if ((category.score || 0) >= 0.1) current.hits++;
+          }
+        }
+        onProgress(Math.round(((chunkIndex + 1) / chunkCount) * 100));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+
+      return Object.fromEntries([...scores].map(([name, result]) => [name, {
+        score: result.score,
+        included: result.score >= 0.2 || (result.score >= 0.1 && result.hits >= 2)
+      }]));
+    }
+
+    function formatTime(seconds) {
+      const value = Math.floor(seconds);
+      return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
+    }
+
+    function midiName(midi) {
+      const names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+      return `${names[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`;
+    }
+
+    async function estimateNotes(buffer, onProgress) {
       const frameSize = 8192;
       const sampleRate = buffer.sampleRate;
       const samples = buffer.getChannelData(0);
-      const hopSize = Math.max(1, Math.floor(sampleRate * 0.3));
+      const hopSize = Math.floor(sampleRate * 0.28);
       const real = new Float64Array(frameSize);
       const imaginary = new Float64Array(frameSize);
-      const frameCount = Math.max(1, Math.ceil(Math.max(0, samples.length - frameSize) / hopSize));
+      const frames = Math.max(1, Math.ceil(Math.max(0, samples.length - frameSize) / hopSize));
       const notes = [];
-      let activeNote = null;
+      let active = null;
       let previousMidi = null;
-
-      for (let frame = 0; frame < frameCount; frame++) {
+      for (let frame = 0; frame < frames; frame++) {
         const offset = frame * hopSize;
         let energy = 0;
         real.fill(0);
         imaginary.fill(0);
-
-        for (let index = 0; index < frameSize && offset + index < samples.length; index++) {
-          const sample = samples[offset + index] || 0;
+        for (let i = 0; i < frameSize && offset + i < samples.length; i++) {
+          const sample = samples[offset + i] || 0;
           energy += sample * sample;
-          const window = 0.5 - 0.5 * Math.cos((2 * Math.PI * index) / (frameSize - 1));
-          real[index] = sample * window;
+          real[i] = sample * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (frameSize - 1)));
         }
-
         let midi = null;
         if (Math.sqrt(energy / frameSize) > 0.008) {
           fft(real, imaginary);
-          let strongestScore = 0;
-          let strongestBin = 0;
-          const lowestBin = Math.max(1, Math.floor((55 * frameSize) / sampleRate));
-          const highestBin = Math.min(Math.floor((1200 * frameSize) / sampleRate), frameSize / 2 - 1);
-          for (let bin = lowestBin; bin <= highestBin; bin++) {
+          let maxScore = 0;
+          let peak = 0;
+          const low = Math.max(1, Math.floor(55 * frameSize / sampleRate));
+          const high = Math.min(Math.floor(1200 * frameSize / sampleRate), frameSize / 2 - 1);
+          for (let bin = low; bin <= high; bin++) {
             let score = Math.hypot(real[bin], imaginary[bin]);
-            for (let harmonic = 2; harmonic <= 4 && bin * harmonic < frameSize / 2; harmonic++) {
-              score += Math.hypot(real[bin * harmonic], imaginary[bin * harmonic]) / harmonic;
-            }
-            if (score > strongestScore) {
-              strongestScore = score;
-              strongestBin = bin;
-            }
+            for (let harmonic = 2; harmonic <= 4 && bin * harmonic < frameSize / 2; harmonic++) score += Math.hypot(real[bin * harmonic], imaginary[bin * harmonic]) / harmonic;
+            if (score > maxScore) { maxScore = score; peak = bin; }
           }
-
-          if (strongestBin) {
-            const left = Math.hypot(real[strongestBin - 1], imaginary[strongestBin - 1]);
-            const center = Math.hypot(real[strongestBin], imaginary[strongestBin]);
-            const right = Math.hypot(real[strongestBin + 1], imaginary[strongestBin + 1]);
+          if (peak) {
+            const left = Math.hypot(real[peak - 1], imaginary[peak - 1]);
+            const center = Math.hypot(real[peak], imaginary[peak]);
+            const right = Math.hypot(real[peak + 1], imaginary[peak + 1]);
             const denominator = left - 2 * center + right;
-            const correction = denominator ? 0.5 * (left - right) / denominator : 0;
-            const frequency = (strongestBin + correction) * sampleRate / frameSize;
-            if (frequency > 0) midi = Math.round(69 + 12 * Math.log2(frequency / 440));
+            const adjusted = peak + (denominator ? 0.5 * (left - right) / denominator : 0);
+            midi = Math.round(69 + 12 * Math.log2(adjusted * sampleRate / frameSize / 440));
           }
         }
-
         const start = offset / sampleRate;
         if (midi !== previousMidi) {
-          if (activeNote) {
-            activeNote.end = start;
-            if (activeNote.end - activeNote.start >= 0.12) notes.push(activeNote);
-          }
-          activeNote = midi === null ? null : { name: midiToNote(midi), start, end: start + hopSize / sampleRate };
+          if (active) { active.end = start; if (active.end - active.start >= 0.12) notes.push(active); }
+          active = midi === null ? null : { name: midiName(midi), start, end: start + hopSize / sampleRate };
           previousMidi = midi;
-        } else if (activeNote) {
-          activeNote.end = start + hopSize / sampleRate;
-        }
-
-        if (frame % 16 === 0) {
-          onProgress(Math.min(99, Math.round((frame / frameCount) * 100)));
+        } else if (active) active.end = start + hopSize / sampleRate;
+        if (frame % 20 === 0) {
+          onProgress(Math.min(99, Math.round(frame / frames * 100)));
           await new Promise((resolve) => requestAnimationFrame(resolve));
         }
       }
-
-      if (activeNote && activeNote.end - activeNote.start >= 0.12) notes.push(activeNote);
+      if (active && active.end - active.start >= 0.12) notes.push(active);
       return notes;
     }
 
     function fft(real, imaginary) {
       const size = real.length;
-      for (let index = 1, reversed = 0; index < size; index++) {
+      for (let i = 1, reversed = 0; i < size; i++) {
         let bit = size >> 1;
         for (; reversed & bit; bit >>= 1) reversed ^= bit;
         reversed ^= bit;
-        if (index < reversed) {
-          [real[index], real[reversed]] = [real[reversed], real[index]];
-          [imaginary[index], imaginary[reversed]] = [imaginary[reversed], imaginary[index]];
+        if (i < reversed) {
+          [real[i], real[reversed]] = [real[reversed], real[i]];
+          [imaginary[i], imaginary[reversed]] = [imaginary[reversed], imaginary[i]];
         }
       }
-
       for (let length = 2; length <= size; length <<= 1) {
-        const angle = (-2 * Math.PI) / length;
+        const angle = -2 * Math.PI / length;
         const stepReal = Math.cos(angle);
         const stepImaginary = Math.sin(angle);
         for (let start = 0; start < size; start += length) {
@@ -782,24 +952,13 @@
             imaginary[odd] = imaginary[even] - productImaginary;
             real[even] += productReal;
             imaginary[even] += productImaginary;
-            [twiddleReal, twiddleImaginary] = [
-              twiddleReal * stepReal - twiddleImaginary * stepImaginary,
-              twiddleReal * stepImaginary + twiddleImaginary * stepReal
-            ];
+            [twiddleReal, twiddleImaginary] = [twiddleReal * stepReal - twiddleImaginary * stepImaginary, twiddleReal * stepImaginary + twiddleImaginary * stepReal];
           }
         }
       }
     }
 
-    function midiToNote(midi) {
-      const noteNames = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-      return `${noteNames[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`;
-    }
-
-    function formatTime(seconds) {
-      const totalSeconds = Math.floor(seconds);
-      return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
-    }
+    renderSongs();
   </script>
 </body>
 </html>
